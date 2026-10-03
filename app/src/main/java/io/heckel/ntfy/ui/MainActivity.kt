@@ -62,6 +62,7 @@ import io.heckel.ntfy.service.SubscriberService
 import io.heckel.ntfy.service.SubscriberServiceManager
 import io.heckel.ntfy.util.Log
 import io.heckel.ntfy.util.SUBSCRIPTION_ICONS
+import io.heckel.ntfy.util.copyToClipboard
 import io.heckel.ntfy.util.dangerButton
 import io.heckel.ntfy.util.displayName
 import io.heckel.ntfy.util.formatDateShort
@@ -72,6 +73,7 @@ import io.heckel.ntfy.util.maybeSplitTopicUrl
 import io.heckel.ntfy.util.randomSubscriptionId
 import io.heckel.ntfy.util.shortUrl
 import io.heckel.ntfy.util.topicShortUrl
+import io.heckel.ntfy.util.topicUrl
 import io.heckel.ntfy.work.DeleteWorker
 import io.heckel.ntfy.work.PollWorker
 import kotlinx.coroutines.Dispatchers
@@ -123,6 +125,10 @@ class MainActivity : AppCompatActivity(), AddFragment.SubscribeListener, Notific
 
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem): Boolean {
             return when (item.itemId) {
+                R.id.main_action_mode_copy -> {
+                    onMultiCopyClick()
+                    true
+                }
                 R.id.main_action_mode_delete -> {
                     onMultiDeleteClick()
                     true
@@ -829,6 +835,15 @@ class MainActivity : AppCompatActivity(), AddFragment.SubscribeListener, Notific
         } else {
             actionMode!!.title = adapter.selected.size.toString()
         }
+    }
+
+    private fun onMultiCopyClick() {
+        Log.d(TAG, "Copying topic addresses of selected subscriptions to clipboard")
+        val content = adapter.currentList
+            .filter { adapter.selected.contains(it.id) }
+            .joinToString("\n") { topicUrl(it.baseUrl, it.topic) }
+        copyToClipboard(this, "topic address", content)
+        finishActionMode()
     }
 
     private fun onMultiDeleteClick() {
